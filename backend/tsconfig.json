@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.base.json", // Extend the base config
+  "compilerOptions": {
+    "resolveJsonModule": true, // Allow importing JSON files
+    "outDir": "./dist", // Output directory for compiled files
+    "rootDir": "./" // Set the root directory to the project root
+  },
+  "include": [
+    // Include all TypeScript files from the 'resources' folder
+    "resources/**/*",
+    "lib/**/*", // Include all TypeScript files from the 'lib' folder
+    "entities/**/*", // Include all TypeScript files from the 'entities' folder
+    "services/**/*", // Include all TypeScript files from the 'services' folder
+  ],
+  "exclude": [
+    "node_modules", // Exclude node_modules
+    "dist" // Exclude dist folder
+  ]
+}

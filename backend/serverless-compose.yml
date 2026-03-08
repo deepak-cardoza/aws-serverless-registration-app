@@ -1,0 +1,9 @@
+# Note: This file is auto-generated. Do not manually edit this file.
+# To update this file add a new service by running this script,
+# Syntax: ./add-service.sh <service_name>
+# Example: ./add-service.sh admins
+
+services:
+  auth:
+    path: services/auth
+    

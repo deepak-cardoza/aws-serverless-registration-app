@@ -1,0 +1,119 @@
+service: auth
+frameworkVersion: "3"
+useDotenv: true
+deprecationNotificationMode: error
+disabledDeprecations:
+  - UNSUPPORTED_CLI_OPTIONS
+  - CLI_OPTIONS_SCHEMA_V3
+  - CONFIG_VALIDATION_MODE_DEFAULT_V3
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${env:REGION, 'us-east-1'}
+  versionFunctions: false
+
+  # Environment variables accessible to all Lambda functions
+  environment:
+    REGION: ${self:provider.region}
+    STAGE: ${self:provider.stage}
+    TABLE_NAME: ${self:service}-users-${self:provider.stage}
+    JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key-change-in-production'}
+
+  # IAM permissions for Lambda functions
+  iam:
+    role:
+      statements:
+        # Allow Lambda functions to access DynamoDB table
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "*"
+
+# Lambda Functions
+functions:
+  # Register function - Creates new user accounts
+  register:
+    handler: dist/handlers/register.handler
+    description: Handles user registration
+    events:
+      - http:
+          path: /register
+          method: post
+          cors: true
+
+  # Login function - Authenticates users and returns JWT token
+  login:
+    handler: dist/handlers/login.handler
+    description: Handles user login and authentication
+    events:
+      - http:
+          path: /login
+          method: post
+          cors: true
+
+# CloudFormation Resources
+resources:
+  Resources:
+    # DynamoDB Table for storing user data
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-users-${self:provider.stage}
+        BillingMode: PROVISIONED
+        # Provisioned capacity - 1 read and 1 write unit (suitable for demo/dev)
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        # Primary key definition
+        AttributeDefinitions:
+          - AttributeName: partition_key
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: partition_key
+            KeyType: HASH    # Partition key
+          - AttributeName: id
+            KeyType: RANGE   # Sort key
+        # Global Secondary Index for querying by email
+        GlobalSecondaryIndexes:
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+
+# Package configuration
+package:
+  patterns:
+    - dist/**             # Include only compiled JS files
+    - "!node_modules/**"  # Exclude dependencies (Lambda layer handles this)
+    - "!src/**"           # Exclude raw TypeScript files
+    - "!**/*.ts"          # Exclude all TypeScript files
+    - "!tsconfig.json"    # Exclude tsconfig
+    - "!docs/**"          # Exclude documentation
+
+# Custom configuration
+custom:
+  # Scripts to run before deployment
+  scripts:
+    hooks:
+      package:initialize: bash -c "cd ../../ && chmod +x pre-deploy.sh && ./pre-deploy.sh auth"
+      before:offline:start: bash -c "cd ../../ && chmod +x pre-deploy.sh && ./pre-deploy.sh auth"
+
+# Serverless plugins
+plugins:
+  - serverless-offline
+  - serverless-plugin-scripts
