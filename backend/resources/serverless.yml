@@ -1,0 +1,53 @@
+service: aws-reg-app-resources
+frameworkVersion: "3"
+useDotenv: true
+deprecationNotificationMode: error
+disabledDeprecations:
+  - UNSUPPORTED_CLI_OPTIONS
+  - CLI_OPTIONS_SCHEMA_V3
+  - CONFIG_VALIDATION_MODE_DEFAULT_V3
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, env:REGION}
+  versionFunctions: false
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - ssm:PutParameter
+            - ssm:GetParameter
+            - ssm:DeleteParameter
+          Resource: "*"
+
+# Node Layer - Contains common dependencies for Lambda functions
+layers:
+  NodeDependencies:
+    path: ./
+    retain: false
+    description: "Common Node.js dependencies for AWS Registration App"
+    compatibleRuntimes:
+      - nodejs20.x
+
+resources:
+  Resources:
+    # SSM Parameter - Store Lambda Layer ARN for use in other services
+    CommonLibNodeArn:
+      Type: AWS::SSM::Parameter
+      Properties:
+        Name: REG_APP_NODE_LAYER
+        Type: String
+        Value: !Ref NodeDependenciesLambdaLayer
+        Description: "Lambda Layer ARN for AWS Registration App Node dependencies"
+
+custom:
+  scripts:
+    hooks:
+      package:initialize: bash pre-deploy.sh
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-scripts

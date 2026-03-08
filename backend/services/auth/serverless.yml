@@ -10,6 +10,8 @@ disabledDeprecations:
 provider:
   name: aws
   runtime: nodejs20.x
+  layers:
+    - ${ssm:REG_APP_NODE_LAYER}
   stage: ${opt:stage, 'dev'}
   region: ${env:REGION, 'us-east-1'}
   versionFunctions: false
