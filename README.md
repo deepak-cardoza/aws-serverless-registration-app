@@ -265,9 +265,11 @@ aws --version
 **If not installed**:
 
 **For Windows**:
+
+- [Download AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 ```bash
 # Download and run the MSI installer
-# Visit: https://aws.amazon.com/cli/
+# Visit: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
 ```
 
