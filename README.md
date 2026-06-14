@@ -19,12 +19,13 @@ A comprehensive demonstration application showcasing AWS serverless architecture
   - [Step 2: Install Node.js and npm](#step-2-install-nodejs-and-npm)
   - [Step 3: Install AWS CLI](#step-3-install-aws-cli)
   - [Step 4: Install Serverless Framework v3](#step-4-install-serverless-framework-v3)
-  - [Step 5: Configure AWS Credentials](#step-5-configure-aws-credentials)
-  - [Step 6: Install Project Dependencies](#step-6-install-project-dependencies)
-  - [Step 7: Deploy Resources (Lambda Layer)](#step-7-deploy-resources-lambda-layer)
-  - [Step 8: Deploy Auth Service](#step-8-deploy-auth-service)
-  - [Step 9: Test the APIs](#step-9-test-the-apis)
-  - [Step 10: Setup Frontend](#step-10-setup-frontend)
+  - [Step 5: Install TypeScript Globally](#step-5-install-typescript-globally)
+  - [Step 6: Configure AWS Credentials](#step-6-configure-aws-credentials)
+  - [Step 7: Install Project Dependencies](#step-7-install-project-dependencies)
+  - [Step 8: Deploy Resources (Lambda Layer)](#step-8-deploy-resources-lambda-layer)
+  - [Step 9: Deploy Auth Service](#step-9-deploy-auth-service)
+  - [Step 10: Test the APIs](#step-10-test-the-apis)
+  - [Step 11: Setup Frontend](#step-11-setup-frontend)
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Database Schema](#database-schema)
@@ -208,8 +209,10 @@ Before diving into automated deployments, let's understand AWS services by creat
 
 Before starting, ensure you have:
 - An AWS account with administrative access
-- Basic understanding of command line/terminal
-- Git installed on your machine
+- A Bash-compliant terminal/command line:
+  - **Windows**: Git Bash (installed automatically with Git).
+  - **macOS/Linux**: Default Terminal/Zsh/Bash.
+- Git installed on your machine (includes Git Bash for Windows)
 
 ### Step 1: Fork and Clone Repository
 
@@ -237,12 +240,12 @@ npm -v
 
 **If not installed or wrong version**:
 
-1. **Download Node.js v18.16.0**:
-   - Visit [Node.js v18.16.0 Downloads](https://nodejs.org/download/release/v18.16.0/)
+1. **Download Node.js v24.15.0**:
+   - Visit [Node.js v24.15.0 Downloads](https://nodejs.org/download/release/v24.15.0/)
    - Download the installer for your operating system:
-     - Windows: `node-v18.16.0-x64.msi`
-     - macOS: `node-v18.16.0.pkg`
-     - Linux: `node-v18.16.0-linux-x64.tar.xz`
+     - Windows: `node-v24.15.0-x64.msi`
+     - macOS: `node-v24.15.0.pkg`
+     - Linux: `node-v24.15.0-linux-x64.tar.xz`
 
 2. **Install Node.js**:
    - Run the installer
@@ -251,8 +254,8 @@ npm -v
 
 3. **Verify Installation**:
    ```bash
-   node -v  # Should output: v18.16.0
-   npm -v   # Should output: 9.x.x or higher
+   node -v  # Should output: v24.15.0
+   npm -v   # Should output: 10.x.x or higher
    ```
 
 ### Step 3: Install AWS CLI
@@ -305,7 +308,20 @@ sls -v
 **Why version 3.40.0?**
 This project is built and tested with Serverless Framework v3. Version 4 has breaking changes that are not compatible with this setup.
 
-### Step 5: Configure AWS Credentials
+### Step 5: Install TypeScript Globally
+
+**Important**: TypeScript must be installed globally because the build scripts (`ts-build.sh`) compile the services using the global `tsc` compiler command.
+
+```bash
+# Install TypeScript globally
+npm install -g typescript
+
+# Verify installation
+tsc -v
+# Should output: Version 5.x.x or higher
+```
+
+### Step 6: Configure AWS Credentials
 
 **Create IAM User** (if you don't have one):
 
@@ -348,7 +364,7 @@ aws sts get-caller-identity
 # Should display your AWS account details
 ```
 
-### Step 6: Install Project Dependencies
+### Step 7: Install Project Dependencies
 
 **Navigate to backend folder**:
 ```bash
@@ -405,7 +421,7 @@ backend/
 - **pre-deploy.sh**: Copies shared code (lib, entities) into service before deployment
 - **ts-build.sh**: Compiles TypeScript to JavaScript
 
-### Step 7: Deploy Resources (Lambda Layer)
+### Step 8: Deploy Resources (Lambda Layer)
 
 **Purpose**: Deploy the Lambda Layer containing shared dependencies (bcrypt, jwt, zod, uuid).
 
@@ -455,7 +471,7 @@ layers:
   NodeDependencies: arn:aws:lambda:ap-south-1:XXXX:layer:aws-reg-app-resources-dev-NodeDependencies:1
 ```
 
-### Step 8: Deploy Auth Service
+### Step 9: Deploy Auth Service
 
 **Purpose**: Deploy the authentication service with API Gateway, Lambda functions, and DynamoDB table.
 
@@ -532,7 +548,7 @@ functions:
 
 **IMPORTANT**: Copy the API Gateway endpoint URL!
 
-### Step 9: Test the APIs
+### Step 10: Test the APIs
 
 **Method 1: Using Postman (Recommended)**
 
@@ -655,7 +671,7 @@ curl -X POST https://your-api-gateway-url.amazonaws.com/dev/login \
 2. Click "Explore table items"
 3. You should see the registered user with hashed password
 
-### Step 10: Setup Frontend
+### Step 11: Setup Frontend
 
 **Update API Configuration**:
 
@@ -892,7 +908,7 @@ aws configure
 **3. Node.js Version Mismatch**
 ```bash
 # Error: Unsupported engine
-# Solution: Install Node.js v18.16.0
+# Solution: Install Node.js v24.15.0
 ```
 
 **4. Lambda Layer Circular Dependency**
