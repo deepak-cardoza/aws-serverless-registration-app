@@ -11,6 +11,7 @@ function createNavigation() {
             <a href="index.html" class="nav-brand">AWS Serverless App</a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Home</a>
+                <a href="about.html" class="nav-link">About</a>
                 ${isLoggedIn ? `
                     <a href="home.html" class="nav-link">Profile</a>
                     <a href="#" class="nav-link" id="navLogout">Logout</a>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - AWS Serverless App</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container about-page">
+        <div class="header">
+            <h1>About the Application</h1>
+            <p>Learn more about the architecture, services, and technologies used</p>
+        </div>
+
+        <div class="about-section">
+            <h2>What it does</h2>
+            <p>
+                This application is a fully functional user authentication system designed as a learning resource and demonstration of modern serverless cloud architecture. Users can securely register new accounts and log in to view their private profiles. The frontend communicates with a set of decoupled backend REST APIs to securely validate credentials and persist data.
+            </p>
+        </div>
+
+        <div class="about-section">
+            <h2>AWS Serverless Infrastructure</h2>
+            <p>
+                The backend is entirely serverless, ensuring high scalability, zero server management overhead, and a pay-as-you-go cost structure.
+            </p>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h3>AWS Lambda</h3>
+                    <p>Handles business logic (e.g., registration processing and login validation) as discrete, event-driven serverless functions.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Amazon API Gateway</h3>
+                    <p>Acts as the front door for backend services, providing secure, CORS-enabled HTTP endpoints (/register and /login) routed to Lambda.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Amazon DynamoDB</h3>
+                    <p>A fast, flexible NoSQL database service used to store user credentials and profile details reliably at any scale.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>AWS SSM Parameter Store</h3>
+                    <p>Stores centralized configuration parameters (such as the Lambda Layer ARN) used across various deployment services.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Amazon CloudFront</h3>
+                    <p>A global content delivery network (CDN) that distributes the static frontend assets securely and at low latency.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Amazon S3</h3>
+                    <p>Hosts the static HTML, CSS, and client-side JavaScript files, accessed securely by CloudFront using Origin Access Control (OAC).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-section">
+            <h2>Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h3>HTML5, CSS3 & JavaScript (ES6+)</h3>
+                    <p>Powers the user interface with a modern, responsive layout, smooth transition animations, and direct API integrations using Axios.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>TypeScript & Node.js</h3>
+                    <p>Used to write type-safe, clean backend handlers compiled to standard JavaScript running on Node.js runtimes.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Serverless Framework v3</h3>
+                    <p>Utilized as the Infrastructure as Code (IaC) tool to configure, provision, and deploy all cloud resources programmatically.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>Zod Validation</h3>
+                    <p>Performs strict, run-time schema validation for registration payloads to ensure data consistency and system stability.</p>
+                </div>
+                <div class="tech-card">
+                    <h3>bcryptjs & JWT</h3>
+                    <p>Secures user passwords using salt-rounded hashing and authenticates user requests using JSON Web Tokens (JWT).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-left">AWS Serverless Workshop | Cloud Computing on AWS</div>
+        <div class="footer-right">By <a href="https://deepakcardoza.com" target="_blank">Deepak Cardoza</a></div>
+    </footer>
+
+    <script src="js/nav.js"></script>
+</body>
+</html>

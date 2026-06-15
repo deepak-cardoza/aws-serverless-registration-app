@@ -13,6 +13,7 @@ pre_deploy() {
   cp register.html dist/
   cp login.html dist/
   cp home.html dist/
+  cp about.html dist/
   echo "Frontend preparation complete."
 }
 
