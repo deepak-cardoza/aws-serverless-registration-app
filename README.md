@@ -70,18 +70,23 @@ The main focus is on understanding how AWS services work together to create a pr
 - **AWS Lambda** - Serverless compute
 - **API Gateway** - RESTful API management
 - **DynamoDB** - NoSQL database
+- **S3** - Static website hosting (frontend) and deployment packages (backend)
+- **CloudFront** - Content Delivery Network (CDN) for secure, low-latency frontend delivery
 - **CloudFormation** - Infrastructure provisioning
 - **CloudWatch** - Logging and monitoring
 - **SSM Parameter Store** - Configuration management
 - **IAM** - Identity and access management
-- **S3** (implicit) - Lambda deployment packages
 
 ### Development Tools
 - **[Serverless Framework v3](https://www.serverless.com/framework/docs)** - Infrastructure as Code (IaC)
 - **[Swagger Editor](https://editor.swagger.io/)** - API documentation and testing
 - **[Postman](https://www.postman.com/)** - API testing and development
 
-
+### Serverless Framework Plugins
+- **serverless-s3-sync** - Syncs local directories (such as compiled `dist` frontend assets) directly to an S3 bucket automatically.
+- **serverless-plugin-scripts** - Enables custom lifecycle hook scripting to run automated actions (e.g., frontend asset preparation, copying files, and CloudFront CDN cache invalidations) during packaging and deployment.
+- **serverless-dotenv-plugin** - Pre-loads environment variables from local `.env` files into serverless configuration files.
+- **serverless-offline** - Emulates AWS Lambda and API Gateway locally on your machine for offline testing.
 
 ---
 
@@ -675,48 +680,88 @@ curl -X POST https://your-api-gateway-url.amazonaws.com/dev/login \
 
 ### Step 11: Setup Frontend
 
-**Update API Configuration**:
+**1. Update API Configuration**:
 
-1. Navigate to frontend folder:
+Navigate to frontend folder:
+```bash
+cd frontend
+```
+
+Edit `js/config.js` and set the `BASE_URL` to your API Gateway Invoke URL:
+```javascript
+const API_CONFIG = {
+    BASE_URL: 'https://your-api-gateway-url.amazonaws.com/dev', // Replace with your actual URL
+    ENDPOINTS: {
+        REGISTER: '/register',
+        LOGIN: '/login'
+    }
+};
+```
+
+---
+
+**2. Deploy Frontend to AWS (S3 & CloudFront CDN)** (Recommended for Cloud Hosting):
+
+You can deploy the frontend application to an S3 bucket configured for static web hosting and deliver it securely using Amazon CloudFront.
+
+1. **Install Dependencies**:
+   Install the required Serverless Framework plugins:
    ```bash
-   cd ../../../frontend
+   npm install
    ```
 
-2. Edit `js/config.js`:
-   ```javascript
-   const API_CONFIG = {
-       BASE_URL: 'https://your-api-gateway-url.amazonaws.com/dev',
-       ENDPOINTS: {
-           REGISTER: '/register',
-           LOGIN: '/login'
-       }
-   };
+2. **Configure Environment Variables**:
+   Create a `.env` file by copying the template:
+   ```bash
+   cp .env.example .env
    ```
+   *Optional:* Open the `.env` file to customize the `REGION` and `S3_BUCKET_NAME`. If not specified, the bucket name defaults to `aws-reg-app-frontend`.
 
-**Run Frontend Locally**:
+3. **Deploy to AWS**:
+   ```bash
+   # Deploy frontend resources
+   sls deploy --stage dev
+   ```
+   *(Note: Avoid using the `sls` command alias on Windows PowerShell as it conflicts with Select-String).*
 
-**Option 1: Using VS Code Live Server (Recommended)**:
-- Install "Live Server" extension in VS Code
-- Right-click on `index.html`
-- Select "Open with Live Server"
-- Browser will automatically open at `http://localhost:5500`
+4. **Verify Deployment & Access**:
+   Once the deployment finishes, the terminal will display the CloudFront URL. For example:
+   ```text
+   ✅ Invalidation submitted (ID: I2DTK7FREP6YISJPNGFLUW6DP2)
+   🌐 CloudFront CDN URL: https://d1lrefdzq6r7v6.cloudfront.net
+   ```
+   Open that URL in your browser to access the live web application securely over HTTPS.
 
-**Option 2: Using Python**:
-```bash
-python -m http.server 8000
-```
+---
 
-**Option 3: Using Node.js**:
-```bash
-npx http-server
-```
+**3. Run Frontend Locally** (Alternative for local development):
 
-**Access the Application**:
-- Open browser: `http://localhost:8000`
-- You should see the landing page
-- Click "Register" to create an account
-- After registration, login with your credentials
-- View your profile information
+If you prefer to run the frontend application locally, you can use any static server:
+
+* **Option 1: Using VS Code Live Server**:
+  - Install the "Live Server" extension in VS Code.
+  - Right-click on `index.html` and select "Open with Live Server".
+  - The browser will automatically open at `http://localhost:5500`.
+
+* **Option 2: Using Python**:
+  ```bash
+  python -m http.server 8000
+  ```
+  Open `http://localhost:8000` in your browser.
+
+* **Option 3: Using Node.js**:
+  ```bash
+  npx http-server
+  ```
+  Open `http://localhost:8080` in your browser.
+
+---
+
+**4. Access the Application**:
+- Open the application URL (locally or CloudFront URL).
+- You should see the landing page.
+- Click "Register" to create an account.
+- After registration, login with your credentials and view your profile information.
 
 ---
 
@@ -754,10 +799,10 @@ aws-serverless-registration-app/
 │   └── ts-build.sh
 ├── frontend/
 │   ├── css/
-│   │   └── style.css
+│   │   └── style.css          # Page styling including responsive footer
 │   ├── js/
-│   │   ├── config.js
-│   │   ├── nav.js
+│   │   ├── config.js          # API Endpoint Configuration
+│   │   ├── nav.js             # Navigation component (dynamically loads About page)
 │   │   ├── index.js
 │   │   ├── register.js
 │   │   ├── login.js
@@ -766,6 +811,11 @@ aws-serverless-registration-app/
 │   ├── register.html
 │   ├── login.html
 │   ├── home.html
+│   ├── about.html             # About page showing AWS architecture & tech stack
+│   ├── serverless.yml         # Serverless configuration for S3 & CloudFront deployment
+│   ├── package.json           # Frontend devDependencies for Serverless plugins
+│   ├── deploy.sh              # Bash helper script for pre-build and invalidation
+│   ├── .env.example           # Example env configuration
 │   └── README.md
 └── README.md
 ```
