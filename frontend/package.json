@@ -1,0 +1,15 @@
+{
+  "name": "aws-serverless-registration-app-frontend",
+  "version": "1.0.0",
+  "description": "Frontend service configuration and deployment for AWS Serverless Registration App",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "remove": "serverless remove"
+  },
+  "devDependencies": {
+    "serverless": "^3.40.0",
+    "serverless-dotenv-plugin": "^4.0.2",
+    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-s3-sync": "^3.1.0"
+  }
+}

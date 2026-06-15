@@ -1,0 +1,121 @@
+service: aws-reg-app-frontend # CloudFormation stack name
+frameworkVersion: "3"
+useDotenv: true
+
+provider:
+  name: aws
+  region: ${opt:region, env:REGION, 'ap-south-1'} # Set via .env or CLI (e.g., ap-south-1)
+  runtime: nodejs20.x
+  deploymentMethod: direct # Enables faster deployments
+  stage: ${opt:stage, 'dev'} # Defaults to 'dev' if not passed via --stage
+
+custom:
+  dotenv:
+    basePath: ./                    # Points to current directory where serverless.yml and .env files are stored
+    path: ${param:envFile, '.env'}  # Loads .env by default if stage not specified
+
+  client:
+    bucketName: ${env:S3_BUCKET_NAME, 'aws-reg-app-frontend'}-${self:provider.stage}
+    distributionFolder: dist
+
+  s3Sync:
+    - bucketName: ${self:custom.client.bucketName}
+      localDir: ${self:custom.client.distributionFolder}
+
+  scripts:
+    hooks:
+      'package:initialize': bash deploy.sh ${self:provider.stage} pre
+      'deploy:finalize': bash deploy.sh ${self:provider.stage} post
+
+plugins:
+  - serverless-s3-sync # Syncs files to S3 bucket
+  - serverless-plugin-scripts # Runs custom shell commands during deploy
+  - serverless-dotenv-plugin # Loads .env files
+
+resources:  
+  Resources:
+    # Origin Access Control (OAC) for CloudFront (secure S3 access)
+    OriginAccessControl:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          Name: ${self:custom.client.bucketName}-oac
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+
+    # S3 bucket to host static frontend files
+    FrontendBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.client.bucketName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    # CloudFront distribution to serve content securely via CDN using default CloudFront certificate
+    FrontendCDN:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Comment: CDN for AWS Registration Web Application
+          Origins:
+            - DomainName: !GetAtt FrontendBucket.RegionalDomainName
+              Id: FrontendOrigin
+              S3OriginConfig: {}
+              OriginAccessControlId: !Ref OriginAccessControl
+          Enabled: true
+          DefaultRootObject: index.html # Required for SPAs
+          CustomErrorResponses:
+            # Redirect 403 and 404 to index.html for client-side routing
+            - ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+          DefaultCacheBehavior:
+            TargetOriginId: FrontendOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # AWS managed cache policy (CachingDisabled)
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true # Use default SSL cert (no custom domain)
+
+    # Bucket policy to allow CloudFront access using OriginAccessControl
+    FrontendBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      DependsOn: FrontendCDN
+      Properties:
+        Bucket: !Ref FrontendBucket
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:GetObject
+              Resource: !Sub "arn:aws:s3:::${FrontendBucket}/*"
+              Condition:
+                StringEquals:
+                  "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${FrontendCDN}"
+
+  # Outputs used by other stacks/plugins or for debugging
+  Outputs:
+    CloudFrontDomainName:
+      Value: !GetAtt FrontendCDN.DomainName
+      Export:
+        Name: ${self:provider.stage}-CloudFrontDomainName
+
+    CloudFrontDistributionId:
+      Value: !Ref FrontendCDN
+      Export:
+        Name: ${self:provider.stage}-CloudFrontDistributionId
