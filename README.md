@@ -47,6 +47,12 @@ This project is designed as a **learning resource for AWS serverless architectur
 
 The main focus is on understanding how AWS services work together to create a production-ready serverless application, with a minimal frontend to demonstrate the complete user flow.
 
+### Application Preview
+
+| Home / Landing Page | User Profile Dashboard |
+|:---:|:---:|
+| ![Home Page](preview1-home.png) | ![Profile Page](preview2-profile.png) |
+
 ---
 
 ## Tech Stack
